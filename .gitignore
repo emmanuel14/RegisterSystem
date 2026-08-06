@@ -1,0 +1,24 @@
+# Dependencies
+/vendor/
+
+# Environment
+.env
+config/config.local.php
+
+# Uploads & generated files
+/public/uploads/
+/storage/logs/
+/storage/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Installer (delete after use)
+install.php
