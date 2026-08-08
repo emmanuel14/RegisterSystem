@@ -1,137 +1,151 @@
 <?php
 $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 $pageTitle = 'Register — ' . $event['title'];
+$B = fn(string $p = '') => Helpers\Helper::base($p);
 $saved = \Helpers\Session::get('reg_form_data', []);
 \Helpers\Session::delete('reg_form_data');
-
-$nigerianStates = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River',
-    'Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi',
-    'Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto',
-    'Taraba','Yobe','Zamfara'];
+$nigerianStates = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','FCT','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara'];
 ?>
 
-<div class="pub-form-hero">
+<!-- Header -->
+<div class="reg-page-header">
     <div class="container">
-        <a href="<?= Helpers\Helper::base('events/' . $e($event['slug'])) ?>" class="text-white text-decoration-none small">
-            <i class="bi bi-arrow-left me-1"></i> Back to Event
+        <a href="<?= $B('events/' . $e($event['slug'])) ?>" style="color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px">
+            <i class="bi bi-arrow-left"></i> Back to Event
         </a>
-        <h1 class="pub-hero-title mt-2"><?= $e($event['title']) ?></h1>
-        <p class="pub-hero-sub">Complete the form below to register</p>
+        <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:clamp(22px,4vw,36px);font-weight:800;color:#fff;margin-bottom:6px"><?= $e($event['title']) ?></h1>
+        <p style="color:rgba(255,255,255,.65);font-size:14px;margin:0">
+            <i class="bi bi-calendar3 me-2"></i><?= Helpers\Helper::formatDate($event['start_date']) ?>
+            <?php if ($event['venue']): ?>&nbsp;·&nbsp;<i class="bi bi-geo-alt me-1"></i><?= $e($event['venue']) ?><?php endif; ?>
+        </p>
     </div>
 </div>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+<!-- Form -->
+<div style="background:var(--body-bg);padding:40px 0 60px">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
 
-            <?php $flashErrors = \Helpers\Session::getFlash('error'); ?>
-            <?php if ($flashErrors): ?>
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <?= implode('<br>', array_map($e, (array)$flashErrors)) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <!-- Error Alert -->
+                <?php
+                use Helpers\Session;
+                $flashErrors = Session::getFlash('error');
+                if ($flashErrors): ?>
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;color:#991b1b">
+                    <i class="bi bi-exclamation-circle-fill flex-shrink-0 mt-1"></i>
+                    <div style="font-size:13.5px"><?= is_array($flashErrors) ? implode('<br>', array_map($e, $flashErrors)) : $e($flashErrors) ?></div>
                 </div>
-            <?php endif; ?>
+                <?php endif; ?>
 
-            <div class="card border-0 shadow">
-                <div class="card-body p-4 p-md-5">
-                    <h3 class="fw-bold mb-1">Registration Form</h3>
-                    <p class="text-muted mb-4">Fields marked with <span class="text-danger">*</span> are required.</p>
+                <form method="POST" action="<?= $B('events/' . $e($event['slug']) . '/register') ?>" novalidate id="regForm">
+                    <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= $e($csrf) ?>">
 
-                    <form method="POST" action="<?= Helpers\Helper::base('events/' . $e($event['slug']) . '/register') ?>" novalidate id="regForm">
-                        <input type="hidden" name="<?= CSRF_TOKEN_NAME ?>" value="<?= $e($csrf) ?>">
+                    <div class="reg-form-card">
 
-                        <!-- Personal Info -->
-                        <h5 class="form-section-title">Personal Information</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-sm-6">
-                                <label class="form-label">First Name <span class="text-danger">*</span></label>
-                                <input type="text" name="first_name" class="form-control"
-                                       value="<?= $e($saved['first_name'] ?? '') ?>" required autocomplete="given-name">
+                        <!-- Section 1: Personal -->
+                        <div class="reg-form-section">
+                            <div class="reg-section-title">
+                                <span class="reg-section-icon"><i class="bi bi-person"></i></span>
+                                Personal Information
                             </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                                <input type="text" name="last_name" class="form-control"
-                                       value="<?= $e($saved['last_name'] ?? '') ?>" required autocomplete="family-name">
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                                <input type="email" name="email" class="form-control"
-                                       value="<?= $e($saved['email'] ?? '') ?>" required autocomplete="email">
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                                <input type="tel" name="phone" class="form-control"
-                                       value="<?= $e($saved['phone'] ?? '') ?>" required autocomplete="tel"
-                                       placeholder="+234 xxx xxx xxxx">
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Gender <span class="text-danger">*</span></label>
-                                <select name="gender" class="form-select" required>
-                                    <option value="">Select gender</option>
-                                    <option value="male"              <?= ($saved['gender'] ?? '') === 'male'              ? 'selected' : '' ?>>Male</option>
-                                    <option value="female"            <?= ($saved['gender'] ?? '') === 'female'            ? 'selected' : '' ?>>Female</option>
-                                    <option value="other"             <?= ($saved['gender'] ?? '') === 'other'             ? 'selected' : '' ?>>Other</option>
-                                    <option value="prefer_not_to_say" <?= ($saved['gender'] ?? '') === 'prefer_not_to_say' ? 'selected' : '' ?>>Prefer not to say</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Date of Birth <span class="text-muted small">(optional)</span></label>
-                                <input type="date" name="date_of_birth" class="form-control"
-                                       value="<?= $e($saved['date_of_birth'] ?? '') ?>">
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">First Name <span style="color:var(--red)">*</span></label>
+                                    <input type="text" name="first_name" class="pub-form-control" value="<?= $e($saved['first_name'] ?? '') ?>" required autocomplete="given-name" placeholder="John">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Last Name <span style="color:var(--red)">*</span></label>
+                                    <input type="text" name="last_name" class="pub-form-control" value="<?= $e($saved['last_name'] ?? '') ?>" required autocomplete="family-name" placeholder="Doe">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Email Address <span style="color:var(--red)">*</span></label>
+                                    <input type="email" name="email" class="pub-form-control" value="<?= $e($saved['email'] ?? '') ?>" required autocomplete="email" placeholder="john@example.com">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Phone Number <span style="color:var(--red)">*</span></label>
+                                    <input type="tel" name="phone" class="pub-form-control" value="<?= $e($saved['phone'] ?? '') ?>" required autocomplete="tel" placeholder="+234 xxx xxx xxxx">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Gender <span style="color:var(--red)">*</span></label>
+                                    <select name="gender" class="pub-form-control" required>
+                                        <option value="">Select gender</option>
+                                        <?php foreach (['male'=>'Male','female'=>'Female','other'=>'Other','prefer_not_to_say'=>'Prefer not to say'] as $v => $l): ?>
+                                            <option value="<?= $v ?>" <?= ($saved['gender'] ?? '') === $v ? 'selected' : '' ?>><?= $l ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Date of Birth <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                                    <input type="date" name="date_of_birth" class="pub-form-control" value="<?= $e($saved['date_of_birth'] ?? '') ?>">
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Church Info -->
-                        <h5 class="form-section-title">Church / Organisation</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-12">
-                                <label class="form-label">Church / Organisation Name <span class="text-danger">*</span></label>
-                                <input type="text" name="church_name" class="form-control"
-                                       value="<?= $e($saved['church_name'] ?? '') ?>" required>
+                        <!-- Section 2: Church -->
+                        <div class="reg-form-section">
+                            <div class="reg-section-title">
+                                <span class="reg-section-icon"><i class="bi bi-building"></i></span>
+                                Church / Organisation
                             </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">State <span class="text-danger">*</span></label>
-                                <select name="state" class="form-select" required>
-                                    <option value="">Select State</option>
-                                    <?php foreach ($nigerianStates as $s): ?>
-                                        <option value="<?= $s ?>" <?= ($saved['state'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">City <span class="text-danger">*</span></label>
-                                <input type="text" name="city" class="form-control"
-                                       value="<?= $e($saved['city'] ?? '') ?>" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Address</label>
-                                <textarea name="address" class="form-control" rows="2"><?= $e($saved['address'] ?? '') ?></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Emergency Contact -->
-                        <h5 class="form-section-title">Emergency Contact <span class="text-muted small fw-normal">(optional)</span></h5>
-                        <div class="row g-3 mb-5">
-                            <div class="col-sm-6">
-                                <label class="form-label">Contact Name</label>
-                                <input type="text" name="emergency_contact_name" class="form-control"
-                                       value="<?= $e($saved['emergency_contact_name'] ?? '') ?>">
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label">Contact Phone</label>
-                                <input type="tel" name="emergency_contact_phone" class="form-control"
-                                       value="<?= $e($saved['emergency_contact_phone'] ?? '') ?>">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="pub-form-label">Church / Organisation Name <span style="color:var(--red)">*</span></label>
+                                    <input type="text" name="church_name" class="pub-form-control" value="<?= $e($saved['church_name'] ?? '') ?>" required placeholder="e.g. RCCG Victory Parish">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">State <span style="color:var(--red)">*</span></label>
+                                    <select name="state" class="pub-form-control" required>
+                                        <option value="">Select State</option>
+                                        <?php foreach ($nigerianStates as $s): ?>
+                                            <option value="<?= $s ?>" <?= ($saved['state'] ?? '') === $s ? 'selected' : '' ?>><?= $s ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">City <span style="color:var(--red)">*</span></label>
+                                    <input type="text" name="city" class="pub-form-control" value="<?= $e($saved['city'] ?? '') ?>" required placeholder="e.g. Port Harcourt">
+                                </div>
+                                <div class="col-12">
+                                    <label class="pub-form-label">Address <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                                    <textarea name="address" class="pub-form-control" rows="2" placeholder="Street address..."><?= $e($saved['address'] ?? '') ?></textarea>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn pub-btn-primary btn-lg" id="submitBtn">
-                                <i class="bi bi-send me-2"></i> Submit Registration
-                            </button>
+                        <!-- Section 3: Emergency -->
+                        <div class="reg-form-section">
+                            <div class="reg-section-title">
+                                <span class="reg-section-icon"><i class="bi bi-telephone-plus"></i></span>
+                                Emergency Contact
+                                <span style="font-size:11px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">Optional</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Contact Name</label>
+                                    <input type="text" name="emergency_contact_name" class="pub-form-control" value="<?= $e($saved['emergency_contact_name'] ?? '') ?>" placeholder="Full name">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="pub-form-label">Contact Phone</label>
+                                    <input type="tel" name="emergency_contact_phone" class="pub-form-control" value="<?= $e($saved['emergency_contact_phone'] ?? '') ?>" placeholder="+234 xxx xxx xxxx">
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                </div>
+
+                        <!-- Submit -->
+                        <div class="reg-form-section" style="background:#f8fafc">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div style="font-size:12.5px;color:var(--text-muted)">
+                                    <i class="bi bi-shield-check me-1" style="color:var(--green)"></i>
+                                    Your data is protected. We will send your QR pass to your email.
+                                </div>
+                                <button type="submit" class="pub-btn pub-btn-gold pub-btn-lg" id="submitBtn">
+                                    <i class="bi bi-send"></i> Submit Registration
+                                </button>
+                            </div>
+                        </div>
+                    </div><!-- /reg-form-card -->
+                </form>
             </div>
         </div>
     </div>

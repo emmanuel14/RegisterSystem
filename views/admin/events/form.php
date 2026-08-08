@@ -199,7 +199,7 @@ $action    = $isEdit ? Helpers\Helper::base('admin/events/' . $event['id'] . '/u
                     <?= $isEdit ? 'Save Changes' : 'Create Event' ?>
                 </button>
                 <?php if ($isEdit): ?>
-                    <a href="<?= Helpers\Helper::base('events/' . $e($event['slug'])) ?>" target="_blank" class="btn btn-outline-secondary">
+                    <a href="<?= Helpers\Helper::base('events/' . $e($event['slug'] ?? '')) ?>" target="_blank" class="btn btn-outline-secondary">
                         <i class="bi bi-eye me-1"></i> View on Site
                     </a>
                 <?php endif; ?>

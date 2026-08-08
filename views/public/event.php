@@ -1,63 +1,91 @@
 <?php
 $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 $pageTitle = $event['title'];
+$B = fn(string $p = '') => Helpers\Helper::base($p);
 ?>
 
-<!-- Banner -->
-<?php if ($event['banner_image']): ?>
-<div class="pub-event-banner" style="background-image:url('/uploads/banners/<?= $e($event['banner_image']) ?>')">
-    <div class="pub-event-banner-overlay">
-        <div class="container">
-            <h1 class="pub-event-hero-title"><?= $e($event['title']) ?></h1>
-            <?php if ($event['theme']): ?>
-                <p class="pub-event-hero-theme"><?= $e($event['theme']) ?></p>
+<!-- ── Event Hero ─────────────────────────────────────────────── -->
+<div class="event-hero">
+    <?php if ($event['banner_image']): ?>
+        <div class="event-hero-bg" style="background-image:url('<?= $B('uploads/banners/' . $e($event['banner_image'])) ?>')"></div>
+    <?php else: ?>
+        <div class="event-hero-bg" style="background:linear-gradient(135deg,#0d1b2e,#1a3c5e)"></div>
+    <?php endif; ?>
+    <div class="event-hero-overlay"></div>
+
+    <div class="container event-hero-content">
+        <a href="<?= $B() ?>" style="color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;transition:.2s">
+            <i class="bi bi-arrow-left"></i> All Events
+        </a>
+
+        <div class="event-hero-eyebrow">
+            <i class="bi bi-calendar3"></i>
+            <?= Helpers\Helper::formatDate($event['start_date'], 'l, F j, Y') ?>
+        </div>
+
+        <h1 class="event-hero-title"><?= $e($event['title']) ?></h1>
+
+        <?php if ($event['theme']): ?>
+            <p class="event-hero-theme">"<?= $e($event['theme']) ?>"</p>
+        <?php endif; ?>
+
+        <div class="event-hero-meta">
+            <?php if ($event['venue']): ?>
+            <div class="event-hero-meta-item">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span><?= $e($event['venue']) ?><?= $event['city'] ? ', ' . $e($event['city']) : '' ?></span>
+            </div>
+            <?php endif; ?>
+            <div class="event-hero-meta-item">
+                <i class="bi bi-clock-fill"></i>
+                <span><?= Helpers\Helper::formatDate($event['start_date'], 'g:i A') ?> – <?= Helpers\Helper::formatDate($event['end_date'], 'g:i A') ?></span>
+            </div>
+            <?php if ($event['capacity']): ?>
+            <div class="event-hero-meta-item">
+                <i class="bi bi-people-fill"></i>
+                <span>Capacity: <?= number_format($event['capacity']) ?></span>
+            </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
-<?php else: ?>
-<div class="pub-hero">
+
+<!-- ── Content ────────────────────────────────────────────────── -->
+<section class="pub-section-sm" style="background:var(--body-bg)">
     <div class="container">
-        <h1 class="pub-hero-title"><?= $e($event['title']) ?></h1>
-        <?php if ($event['theme']): ?><p class="pub-hero-sub"><?= $e($event['theme']) ?></p><?php endif; ?>
-    </div>
-</div>
-<?php endif; ?>
+        <div class="row g-5 align-items-start">
 
-<div class="container py-5">
-    <div class="row g-5">
-        <!-- Content -->
-        <div class="col-lg-8">
+            <!-- Left: Content -->
+            <div class="col-lg-7">
 
-            <!-- Description -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <h3 class="fw-bold mb-3">About This Event</h3>
+                <!-- About -->
+                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:32px;margin-bottom:24px;box-shadow:var(--shadow-sm)">
+                    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:16px">About This Event</h2>
                     <?php if ($event['description']): ?>
-                        <div class="pub-description"><?= nl2br($e($event['description'])) ?></div>
+                        <div style="line-height:1.8;color:#374151;font-size:15px"><?= nl2br($e($event['description'])) ?></div>
                     <?php else: ?>
-                        <p class="text-muted">No description available.</p>
+                        <p style="color:var(--text-muted)">No description available.</p>
                     <?php endif; ?>
                 </div>
-            </div>
 
-            <!-- Speakers -->
-            <?php if ($speakers): ?>
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4">
-                    <h3 class="fw-bold mb-4">Speakers</h3>
-                    <div class="row g-4">
+                <!-- Speakers -->
+                <?php if ($speakers): ?>
+                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:32px;margin-bottom:24px;box-shadow:var(--shadow-sm)">
+                    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:20px">
+                        <i class="bi bi-mic-fill" style="font-size:18px;color:var(--pub-gold);margin-right:8px"></i>Speakers
+                    </h2>
+                    <div class="row g-3">
                         <?php foreach ($speakers as $sp): ?>
                         <div class="col-sm-6">
-                            <div class="d-flex gap-3">
-                                <div class="pub-speaker-avatar"><?= $e(Helpers\Helper::avatarInitials($sp['name'])) ?></div>
+                            <div class="speaker-card">
+                                <div class="speaker-avatar"><?= $e(Helpers\Helper::avatarInitials($sp['name'])) ?></div>
                                 <div>
-                                    <div class="fw-bold"><?= $e($sp['name']) ?></div>
+                                    <div class="speaker-name"><?= $e($sp['name']) ?></div>
                                     <?php if ($sp['title']): ?>
-                                        <div class="small text-muted"><?= $e($sp['title']) ?></div>
+                                        <div class="speaker-title"><?= $e($sp['title']) ?></div>
                                     <?php endif; ?>
                                     <?php if ($sp['bio']): ?>
-                                        <div class="small mt-1"><?= $e($sp['bio']) ?></div>
+                                        <div class="speaker-bio"><?= $e($sp['bio']) ?></div>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -65,122 +93,122 @@ $pageTitle = $event['title'];
                         <?php endforeach; ?>
                     </div>
                 </div>
-            </div>
-            <?php endif; ?>
+                <?php endif; ?>
 
-            <!-- Schedule -->
-            <?php if ($schedule): ?>
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h3 class="fw-bold mb-4">Programme</h3>
+                <!-- Schedule -->
+                <?php if ($schedule): ?>
+                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:32px;box-shadow:var(--shadow-sm)">
+                    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:20px">
+                        <i class="bi bi-list-ol" style="font-size:18px;color:var(--pub-gold);margin-right:8px"></i>Programme Schedule
+                    </h2>
                     <?php
                     $byDay = [];
-                    foreach ($schedule as $item) {
-                        $byDay[$item['day']][] = $item;
-                    }
+                    foreach ($schedule as $item) { $byDay[$item['day']][] = $item; }
                     ?>
                     <?php foreach ($byDay as $day => $items): ?>
-                    <div class="mb-4">
-                        <h5 class="pub-schedule-day"><?= Helpers\Helper::formatDate($day, 'l, F j, Y') ?></h5>
+                        <div class="schedule-day-header">
+                            <h6><?= Helpers\Helper::formatDate($day, 'l, F j, Y') ?></h6>
+                        </div>
                         <?php foreach ($items as $item): ?>
-                        <div class="pub-schedule-item">
-                            <div class="pub-schedule-time">
-                                <?= $e(substr($item['start_time'],0,5)) ?><?= $item['end_time'] ? '–' . substr($item['end_time'],0,5) : '' ?>
-                            </div>
-                            <div class="pub-schedule-content">
-                                <div class="fw-semibold"><?= $e($item['title']) ?></div>
-                                <?php if ($item['description']): ?>
-                                    <div class="small text-muted"><?= $e($item['description']) ?></div>
-                                <?php endif; ?>
-                                <?php if ($item['speaker_name']): ?>
-                                    <div class="small text-primary mt-1"><i class="bi bi-person me-1"></i><?= $e($item['speaker_name']) ?></div>
-                                <?php endif; ?>
+                        <div class="schedule-item">
+                            <div class="schedule-time"><?= $e(substr($item['start_time'],0,5)) ?><?= $item['end_time'] ? '–'.substr($item['end_time'],0,5) : '' ?></div>
+                            <div class="schedule-dot"></div>
+                            <div style="flex:1">
+                                <div class="schedule-title"><?= $e($item['title']) ?></div>
+                                <?php if ($item['description']): ?><div class="schedule-desc"><?= $e($item['description']) ?></div><?php endif; ?>
+                                <?php if ($item['speaker_name']): ?><div class="schedule-speaker"><i class="bi bi-person me-1"></i><?= $e($item['speaker_name']) ?></div><?php endif; ?>
                             </div>
                         </div>
                         <?php endforeach; ?>
-                    </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Register CTA -->
-            <div class="card pub-reg-card mb-4">
-                <div class="card-body p-4">
-                    <?php if ($registrationOpen): ?>
-                        <div class="text-center mb-3">
-                            <span class="badge bg-success mb-2">Registration Open</span>
-                            <p class="text-muted small mb-0">Secure your spot today</p>
-                        </div>
-                        <a href="<?= Helpers\Helper::base('events/' . $e($event['slug']) . '/register') ?>" class="btn pub-btn-primary w-100 btn-lg">
-                            <i class="bi bi-pencil-square me-2"></i>Register Now
-                        </a>
-                        <?php if ($event['registration_close']): ?>
-                            <div class="small text-muted text-center mt-2">
-                                Closes: <?= Helpers\Helper::formatDateTime($event['registration_close']) ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($event['capacity']): ?>
-                            <div class="small text-muted text-center mt-1">
-                                Capacity: <?= number_format($event['capacity']) ?> attendees
-                            </div>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <div class="text-center">
-                            <i class="bi bi-lock fs-1 text-muted"></i>
-                            <p class="text-muted mt-2 mb-0">Registration is currently closed.</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                <?php endif; ?>
             </div>
 
-            <!-- Event Details -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">Event Details</h5>
-                    <ul class="list-unstyled pub-detail-list">
-                        <li>
-                            <i class="bi bi-calendar3"></i>
-                            <div>
-                                <strong>Date</strong><br>
-                                <?= Helpers\Helper::formatDate($event['start_date'], 'l, F j, Y') ?>
-                                <?php if (Helpers\Helper::formatDate($event['start_date'], 'Y-m-d') !== Helpers\Helper::formatDate($event['end_date'], 'Y-m-d')): ?>
-                                    <br>to <?= Helpers\Helper::formatDate($event['end_date'], 'l, F j, Y') ?>
-                                <?php endif; ?>
+            <!-- Right: Registration Sidebar -->
+            <div class="col-lg-5">
+                <div class="event-sidebar-card">
+                    <div class="event-sidebar-header">
+                        <?php if ($registrationOpen): ?>
+                            <div class="reg-open-badge"><i class="bi bi-circle-fill" style="font-size:8px"></i> Registration Open</div>
+                        <?php else: ?>
+                            <div class="reg-open-badge" style="background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.3);color:#fca5a5">
+                                <i class="bi bi-x-circle"></i> Registration Closed
                             </div>
-                        </li>
-                        <li>
-                            <i class="bi bi-clock"></i>
-                            <div>
-                                <strong>Time</strong><br>
-                                <?= Helpers\Helper::formatDate($event['start_date'], 'g:i A') ?>
-                            </div>
-                        </li>
-                        <?php if ($event['venue']): ?>
-                        <li>
-                            <i class="bi bi-geo-alt"></i>
-                            <div>
-                                <strong>Venue</strong><br>
-                                <?= $e($event['venue']) ?>
-                                <?php if ($event['venue_address']): ?><br><span class="text-muted small"><?= $e($event['venue_address']) ?></span><?php endif; ?>
-                            </div>
-                        </li>
                         <?php endif; ?>
-                        <?php if ($event['city']): ?>
-                        <li>
-                            <i class="bi bi-pin-map"></i>
-                            <div>
-                                <strong>City</strong><br>
-                                <?= $e($event['city']) ?><?= $event['state'] ? ', ' . $e($event['state']) : '' ?>
-                            </div>
-                        </li>
+                        <h3><?= $e($event['title']) ?></h3>
+                        <?php if ($event['theme']): ?>
+                            <p>"<?= $e($event['theme']) ?>"</p>
                         <?php endif; ?>
-                    </ul>
+                    </div>
+
+                    <div class="event-sidebar-body">
+                        <div class="event-detail-list">
+                            <div class="event-detail-item">
+                                <div class="event-detail-icon"><i class="bi bi-calendar3"></i></div>
+                                <div>
+                                    <div class="event-detail-label">Date</div>
+                                    <div class="event-detail-value"><?= Helpers\Helper::formatDate($event['start_date'], 'l, M j, Y') ?></div>
+                                    <?php if (Helpers\Helper::formatDate($event['start_date'],'Y-m-d') !== Helpers\Helper::formatDate($event['end_date'],'Y-m-d')): ?>
+                                        <div style="font-size:12px;color:var(--text-muted)">to <?= Helpers\Helper::formatDate($event['end_date'],'l, M j, Y') ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="event-detail-item">
+                                <div class="event-detail-icon"><i class="bi bi-clock"></i></div>
+                                <div>
+                                    <div class="event-detail-label">Time</div>
+                                    <div class="event-detail-value"><?= Helpers\Helper::formatDate($event['start_date'],'g:i A') ?></div>
+                                </div>
+                            </div>
+                            <?php if ($event['venue']): ?>
+                            <div class="event-detail-item">
+                                <div class="event-detail-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                <div>
+                                    <div class="event-detail-label">Venue</div>
+                                    <div class="event-detail-value"><?= $e($event['venue']) ?></div>
+                                    <?php if ($event['venue_address']): ?><div style="font-size:12px;color:var(--text-muted)"><?= $e($event['venue_address']) ?></div><?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <?php if ($event['capacity']): ?>
+                            <div class="event-detail-item">
+                                <div class="event-detail-icon"><i class="bi bi-people-fill"></i></div>
+                                <div>
+                                    <div class="event-detail-label">Capacity</div>
+                                    <div class="event-detail-value"><?= number_format($event['capacity']) ?> seats</div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <?php if ($event['registration_close']): ?>
+                            <div class="event-detail-item">
+                                <div class="event-detail-icon"><i class="bi bi-hourglass-split"></i></div>
+                                <div>
+                                    <div class="event-detail-label">Closes</div>
+                                    <div class="event-detail-value"><?= Helpers\Helper::formatDateTime($event['registration_close']) ?></div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="mt-4">
+                            <?php if ($registrationOpen): ?>
+                                <a href="<?= $B('events/' . $e($event['slug']) . '/register') ?>" class="pub-btn pub-btn-gold w-100 justify-content-center" style="border-radius:10px;padding:14px;font-size:15px">
+                                    <i class="bi bi-pencil-square"></i> Register Now — It's Free
+                                </a>
+                                <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px">
+                                    <i class="bi bi-shield-check me-1"></i>Your information is safe and secure
+                                </p>
+                            <?php else: ?>
+                                <div style="text-align:center;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid var(--border)">
+                                    <i class="bi bi-lock-fill" style="font-size:24px;color:var(--text-muted)"></i>
+                                    <p style="margin:8px 0 0;color:var(--text-secondary);font-size:13.5px">Registration is currently closed for this event.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>

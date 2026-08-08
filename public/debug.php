@@ -29,7 +29,7 @@ echo "CSS file exists at:  " . htmlspecialchars($cssFile) . " → " . (file_exis
 try {
     $db = \Helpers\Database::getInstance();
     $row = $db->fetchOne("SELECT COUNT(*) as c FROM settings");
-    echo "DB settings rows:    " . $row['c'] . " \n";
+    echo "DB settings rows:    " . $row['c'] . " ✅\n";
 } catch (Exception $e) {
     echo "DB error:            " . htmlspecialchars($e->getMessage()) . " ❌\n";
 }

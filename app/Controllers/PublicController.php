@@ -6,34 +6,16 @@ use Helpers\Helper;
 use Helpers\Session;
 use Helpers\QRCode;
 use Helpers\Mailer;
-use Helpers\Calendar;
-use Helpers\Database;
 use Models\Event;
 use Models\Registration;
 use Models\Setting;
-use Models\Ministry;
-use Models\Announcement;
-use Models\Testimonial;
-use Models\Gallery;
-use Models\Notification;
 
 class PublicController extends BaseController
 {
     public function home(): void
     {
-        $events        = Event::upcomingFeatured(3);
-        $ministries    = $this->safeQuery(fn() => Ministry::allActive(), []);
-        $testimonials  = $this->safeQuery(fn() => Testimonial::approved(6), []);
-        $announcements = $this->safeQuery(fn() => Announcement::published(5), []);
-        $gallery       = $this->safeQuery(fn() => Gallery::recent(8), []);
-
-        $this->view('public/home', compact('events', 'ministries', 'testimonials', 'announcements', 'gallery'), 'public');
-    }
-
-    public function eventsList(): void
-    {
         $events = Event::published();
-        $this->view('public/events', compact('events'), 'public');
+        $this->view('public/home', compact('events'), 'public');
     }
 
     public function eventDetail(string $slug): void
@@ -45,68 +27,11 @@ class PublicController extends BaseController
             return;
         }
 
-        $regCount = (int)Database::getInstance()->fetchColumn(
-            "SELECT COUNT(*) FROM registrations WHERE event_id = ? AND status = 'confirmed'",
-            [$event['id']]
-        );
-        $event['reg_count'] = $regCount;
-
-        $speakers         = Event::getSpeakers($event['id']);
-        $schedule         = Event::getSchedule($event['id']);
+        $speakers       = Event::getSpeakers($event['id']);
+        $schedule       = Event::getSchedule($event['id']);
         $registrationOpen = Event::isRegistrationOpen($event);
-        $gallery          = $this->safeQuery(fn() => Gallery::byEvent($event['id']), []);
 
-        $this->view('public/event', compact('event', 'speakers', 'schedule', 'registrationOpen', 'gallery'), 'public');
-    }
-
-    public function ministries(): void
-    {
-        $ministries = $this->safeQuery(fn() => Ministry::allActive(), []);
-        $this->view('public/ministries', compact('ministries'), 'public');
-    }
-
-    public function ministryDetail(string $slug): void
-    {
-        $ministry = $this->safeQuery(fn() => Ministry::findBySlug($slug));
-        if (!$ministry) {
-            http_response_code(404);
-            $this->view('public/404', [], 'public');
-            return;
-        }
-        $events = Event::published();
-        $this->view('public/ministry', compact('ministry', 'events'), 'public');
-    }
-
-    public function search(): void
-    {
-        $query = Helper::sanitizeString($_GET['q'] ?? '');
-        $results = ['events' => [], 'announcements' => [], 'ministries' => []];
-
-        if (strlen($query) >= 2) {
-            $results['events']        = Event::search($query);
-            $results['announcements'] = $this->safeQuery(fn() => Announcement::search($query), []);
-            $allMinistries            = $this->safeQuery(fn() => Ministry::allActive(), []);
-            $results['ministries']    = array_values(array_filter($allMinistries, fn($m) =>
-                stripos($m['name'], $query) !== false || stripos($m['description'] ?? '', $query) !== false
-            ));
-        }
-
-        $this->view('public/search', compact('query', 'results'), 'public');
-    }
-
-    public function downloadCalendar(string $slug): void
-    {
-        $event = Event::findBySlug($slug);
-        if (!$event) {
-            http_response_code(404);
-            exit;
-        }
-        $code = Helper::sanitizeString($_GET['code'] ?? '');
-        $ics  = Calendar::generateIcs($event, $code);
-        header('Content-Type: text/calendar; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . Helper::slugify($event['title']) . '.ics"');
-        echo $ics;
-        exit;
+        $this->view('public/event', compact('event', 'speakers', 'schedule', 'registrationOpen'), 'public');
     }
 
     public function registerForm(string $slug): void
@@ -126,6 +51,7 @@ class PublicController extends BaseController
             Helper::redirect('/events/' . $slug . '/register');
         }
 
+        // CSRF
         $csrfToken = $_POST[CSRF_TOKEN_NAME] ?? '';
         if (!Session::validateCsrfToken($csrfToken)) {
             Session::flash('error', 'Security token expired. Please try again.');
@@ -138,6 +64,7 @@ class PublicController extends BaseController
             Helper::redirect('/events/' . $slug);
         }
 
+        // Collect & validate
         $attendeeData = [
             'first_name'              => Helper::sanitizeString($_POST['first_name'] ?? ''),
             'last_name'               => Helper::sanitizeString($_POST['last_name'] ?? ''),
@@ -157,6 +84,7 @@ class PublicController extends BaseController
 
         if ($errors) {
             Session::flash('error', implode('<br>', $errors));
+            // Store form data so the user doesn't have to retype
             Session::set('reg_form_data', $attendeeData);
             Helper::redirect('/events/' . $slug . '/register');
         }
@@ -172,28 +100,26 @@ class PublicController extends BaseController
             Helper::redirect('/events/' . $slug . '/register');
         }
 
-        $settings   = Setting::all();
-        $siteUrl    = rtrim($settings['site_url'] ?? 'http://localhost', '/');
-        $checkinUrl = $siteUrl . Helper::base('checkin/' . $result['code']);
-        $qrFile     = QRCode::filename($result['code']);
+        // Generate QR code
+        $settings  = Setting::all();
+        $siteUrl   = rtrim($settings['site_url'] ?? 'http://localhost', '/');
+        $checkinUrl = $siteUrl . '/checkin/' . $result['code'];
+        $qrFile    = QRCode::filename($result['code']);
 
         try {
             QRCode::generate($checkinUrl, $qrFile);
-        } catch (\Throwable) {}
+        } catch (\Throwable $e) {
+            // QR generation failure is non-fatal
+        }
 
+        // Send confirmation email (non-blocking)
         $fullReg = Registration::findByCode($result['code']);
         if ($fullReg) {
             try {
                 Mailer::sendConfirmation($fullReg, QR_STORAGE_PATH . '/' . $qrFile);
-            } catch (\Throwable) {}
-
-            try {
-                Notification::notifyRegistrationConfirmed(
-                    (int)$result['attendee_id'],
-                    $event['title'],
-                    Helper::base('registration/success/' . $result['code'])
-                );
-            } catch (\Throwable) {}
+            } catch (\Throwable $e) {
+                // Email failure should not block the user
+            }
         }
 
         Helper::redirect('/registration/success/' . $result['code']);
@@ -207,16 +133,12 @@ class PublicController extends BaseController
             Helper::redirect('/');
         }
 
-        $event = Event::findBySlug($reg['event_slug']);
         $qrFile = QRCode::filename($code);
         $qrUrl  = file_exists(QR_STORAGE_PATH . '/' . $qrFile)
-            ? Helper::base('uploads/qrcodes/' . $qrFile)
+            ? '/uploads/qrcodes/' . $qrFile
             : null;
 
-        $googleCalUrl = $event ? Calendar::googleUrl($event) : '';
-        $icsUrl       = $event ? Helper::base('events/' . $reg['event_slug'] . '/calendar.ics?code=' . urlencode($code)) : '';
-
-        $this->view('public/success', compact('reg', 'qrUrl', 'code', 'googleCalUrl', 'icsUrl', 'event'), 'public');
+        $this->view('public/success', compact('reg', 'qrUrl', 'code'), 'public');
     }
 
     public function downloadQr(string $code): void
@@ -236,6 +158,7 @@ class PublicController extends BaseController
 
     public function checkinPublic(string $code): void
     {
+        // Public check-in page for QR scans
         $reg = Registration::findByCode($code);
         $this->view('public/checkin', compact('reg', 'code'), 'public');
     }
@@ -266,15 +189,5 @@ class PublicController extends BaseController
         if (empty($data['city']))        $errors[] = 'City is required.';
 
         return $errors;
-    }
-
-    /** Gracefully handle missing v2 tables before migration is run. */
-    private function safeQuery(callable $fn, mixed $default = null): mixed
-    {
-        try {
-            return $fn();
-        } catch (\Throwable) {
-            return $default;
-        }
     }
 }

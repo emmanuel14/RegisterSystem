@@ -201,33 +201,4 @@ class RegistrationController extends BaseController
 
         Helper::json(['success' => true, 'message' => 'Checked in successfully!', 'checked_in_at' => date('Y-m-d H:i:s')]);
     }
-
-    public function checkinStats(int $id): void
-    {
-        AuthMiddleware::requireAuth();
-
-        $event = Event::findById($id);
-        if (!$event) {
-            Helper::json(['success' => false], 404);
-        }
-
-        $db = \Helpers\Database::getInstance();
-        $total = (int)$db->fetchColumn(
-            "SELECT COUNT(*) FROM registrations WHERE event_id = ? AND status = 'confirmed'",
-            [$id]
-        );
-        $checkedIn = (int)$db->fetchColumn(
-            "SELECT COUNT(*) FROM checkins c
-             JOIN registrations r ON r.id = c.registration_id
-             WHERE r.event_id = ?",
-            [$id]
-        );
-
-        Helper::json([
-            'success'    => true,
-            'total'      => $total,
-            'checked_in' => $checkedIn,
-            'remaining'  => max(0, $total - $checkedIn),
-        ]);
-    }
 }

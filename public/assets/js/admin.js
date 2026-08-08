@@ -1,124 +1,89 @@
 /* ============================================================
-   EMS – Admin JavaScript
+   EMS Admin JS v2.0
    ============================================================ */
-
 (function () {
   'use strict';
 
   // ── Sidebar Toggle ──────────────────────────────────────────
-  const sidebar  = document.getElementById('sidebar');
-  const toggle   = document.getElementById('sidebarToggle');
-  const main     = document.getElementById('main-content');
+  const sidebar   = document.getElementById('sidebar');
+  const toggle    = document.getElementById('sidebarToggle');
+  const main      = document.getElementById('mainContent');
+  const backdrop  = document.getElementById('sidebarBackdrop');
 
-  // Create backdrop for mobile
-  const backdrop = document.createElement('div');
-  backdrop.className = 'sidebar-backdrop';
-  document.body.appendChild(backdrop);
+  function isMobile() { return window.innerWidth < 992; }
 
-  function isMobile () { return window.innerWidth < 992; }
-
-  function openSidebar () {
+  function openSidebar() {
     sidebar.classList.add('open');
-    backdrop.classList.add('show');
+    backdrop && backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
   }
 
-  function closeSidebar () {
+  function closeSidebar() {
     sidebar.classList.remove('open');
-    backdrop.classList.remove('show');
+    backdrop && backdrop.classList.remove('show');
+    document.body.style.overflow = '';
   }
 
-  function toggleSidebar () {
-    if (isMobile()) {
-      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-    } else {
-      // Desktop: collapse/expand
-      const collapsed = sidebar.style.width === '0px' || sidebar.classList.contains('collapsed');
-      if (collapsed) {
-        sidebar.classList.remove('collapsed');
-        main.style.marginLeft = 'var(--ems-sidebar-w)';
-        sidebar.style.width   = '';
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      if (isMobile()) {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
       } else {
-        sidebar.classList.add('collapsed');
-        main.style.marginLeft = '0';
-        sidebar.style.width   = '0';
+        // Desktop collapse
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        sidebar.classList.toggle('collapsed');
+        if (main) main.style.marginLeft = isCollapsed ? '' : '0';
+        sidebar.style.width = isCollapsed ? '' : '0';
+        sidebar.style.overflow = isCollapsed ? '' : 'hidden';
       }
-    }
+    });
   }
 
-  if (toggle)   toggle.addEventListener('click', toggleSidebar);
-  if (backdrop) backdrop.addEventListener('click', closeSidebar);
-
+  backdrop && backdrop.addEventListener('click', closeSidebar);
   window.addEventListener('resize', function () {
     if (!isMobile()) {
       closeSidebar();
-      sidebar.style.width   = '';
-      main.style.marginLeft = '';
-      sidebar.classList.remove('collapsed');
+      if (sidebar) { sidebar.style.width = ''; sidebar.style.overflow = ''; }
+      if (main) main.style.marginLeft = '';
     }
   });
 
-  // ── Auto-dismiss alerts ─────────────────────────────────────
-  document.querySelectorAll('.alert').forEach(function (el) {
-    if (el.classList.contains('alert-success') || el.classList.contains('alert-info')) {
-      setTimeout(function () {
-        const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
-        if (bsAlert) bsAlert.close();
-      }, 5000);
-    }
+  // ── Auto dismiss success alerts ─────────────────────────────
+  document.querySelectorAll('.alert-success, .alert-info').forEach(function (el) {
+    setTimeout(function () {
+      try { bootstrap.Alert.getOrCreateInstance(el)?.close(); } catch(e) {}
+    }, 4000);
   });
 
-  // ── Form dirty tracking ─────────────────────────────────────
+  // ── Tooltip init ────────────────────────────────────────────
+  document.querySelectorAll('[title]:not([data-bs-toggle])').forEach(function (el) {
+    try { new bootstrap.Tooltip(el, { trigger: 'hover', placement: 'top' }); } catch(e) {}
+  });
+
+  // ── Form dirty protection ───────────────────────────────────
   let formDirty = false;
-
-  document.querySelectorAll('form input, form select, form textarea').forEach(function (el) {
+  document.querySelectorAll('form:not([data-no-dirty]) input, form:not([data-no-dirty]) select, form:not([data-no-dirty]) textarea').forEach(function (el) {
     el.addEventListener('change', function () { formDirty = true; });
   });
-
   window.addEventListener('beforeunload', function (e) {
-    if (formDirty) {
-      e.preventDefault();
-      e.returnValue = '';
-    }
+    if (formDirty) { e.preventDefault(); e.returnValue = ''; }
   });
-
-  // Clear dirty on submit
   document.querySelectorAll('form').forEach(function (f) {
     f.addEventListener('submit', function () { formDirty = false; });
   });
 
-  // ── Tooltip init ────────────────────────────────────────────
-  document.querySelectorAll('[title]').forEach(function (el) {
-    new bootstrap.Tooltip(el, { trigger: 'hover', placement: 'top' });
-  });
-
-  // ── Confirm delete via data attrs ───────────────────────────
-  document.querySelectorAll('[data-confirm]').forEach(function (el) {
-    el.addEventListener('click', async function (e) {
-      e.preventDefault();
-      const msg = this.dataset.confirm || 'Are you sure?';
-      const res = await Swal.fire({
-        icon: 'warning',
-        title: 'Confirm',
-        text: msg,
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        confirmButtonText: 'Yes, proceed',
-      });
-      if (res.isConfirmed) {
-        const href   = this.getAttribute('href');
-        const form   = this.closest('form');
-        if (href)  window.location.href = href;
-        if (form)  form.submit();
-      }
+  // ── SweetAlert2 theme override ──────────────────────────────
+  if (window.Swal) {
+    const SwalStyled = Swal.mixin({
+      customClass: {
+        confirmButton: 'btn btn-primary me-2',
+        cancelButton:  'btn btn-outline-secondary',
+        popup:         'shadow-lg',
+      },
+      buttonsStyling: false,
+      borderRadius: '14px',
     });
-  });
-
-  // ── Slug generator helper (global) ─────────────────────────
-  window.emsSlugify = function (text) {
-    return text.toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_]+/g, '-')
-      .replace(/^-+|-+$/, '');
-  };
+    window.SwalStyled = SwalStyled;
+  }
 
 })();

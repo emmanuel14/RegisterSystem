@@ -34,12 +34,17 @@ class Router
 
         // Strip the subdirectory prefix so the router works whether the app
         // is at / (virtual host) OR at /ems/public/ (XAMPP subfolder).
-        $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-        if ($scriptDir !== '' && str_starts_with($uri, $scriptDir)) {
+        $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'), '/\\');
+        if ($scriptDir !== '' && $scriptDir !== '/' && str_starts_with($uri, $scriptDir)) {
             $uri = substr($uri, strlen($scriptDir));
         }
 
+        // Normalize front-controller entry points such as /index.php or /.
+        $uri = preg_replace('#/index\.php/?$#', '/', $uri);
         $uri = '/' . trim($uri, '/');
+        if ($uri === '//') {
+            $uri = '/';
+        }
 
         foreach ($this->routes as [$routeMethod, $pattern, $controllerClass, $action]) {
             if ($method !== $routeMethod) continue;

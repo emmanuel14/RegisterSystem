@@ -146,17 +146,10 @@ class Registration
 
             if ($attendee) {
                 $attendeeId = $attendee['id'];
-                unset($attendeeData['member_id']);
+                // Update with latest data
                 $db->update('attendees', $attendeeData, 'id = ?', [$attendeeId]);
             } else {
-                $attendeeData['member_id'] = self::generateMemberId();
                 $attendeeId = $db->insert('attendees', $attendeeData);
-            }
-
-            // Ensure existing attendees have a member ID
-            $existingMemberId = $db->fetchColumn('SELECT member_id FROM attendees WHERE id = ?', [$attendeeId]);
-            if (empty($existingMemberId)) {
-                $db->update('attendees', ['member_id' => self::generateMemberId()], 'id = ?', [$attendeeId]);
             }
 
             // Check for duplicate registration
@@ -193,55 +186,6 @@ class Registration
     public static function delete(int $id): void
     {
         Database::getInstance()->delete('registrations', 'id = ?', [$id]);
-    }
-
-    public static function getAttendeeProfile(int $attendeeId): ?array
-    {
-        return Database::getInstance()->fetchOne(
-            'SELECT * FROM attendees WHERE id = ?',
-            [$attendeeId]
-        );
-    }
-
-    public static function byAttendee(int $attendeeId): array
-    {
-        return Database::getInstance()->fetchAll(
-            "SELECT r.*, e.title AS event_title, e.slug AS event_slug, e.start_date, e.end_date,
-                    e.venue, c.checked_in_at
-             FROM registrations r
-             JOIN events e ON e.id = r.event_id
-             LEFT JOIN checkins c ON c.registration_id = r.id
-             WHERE r.attendee_id = ? AND r.status = 'confirmed'
-             ORDER BY e.start_date DESC",
-            [$attendeeId]
-        );
-    }
-
-    public static function upcomingByAttendee(int $attendeeId): array
-    {
-        return Database::getInstance()->fetchAll(
-            "SELECT r.*, e.title AS event_title, e.slug AS event_slug, e.start_date, e.venue
-             FROM registrations r
-             JOIN events e ON e.id = r.event_id
-             WHERE r.attendee_id = ? AND r.status = 'confirmed' AND e.start_date >= NOW()
-             ORDER BY e.start_date ASC",
-            [$attendeeId]
-        );
-    }
-
-    private static function generateMemberId(): string
-    {
-        $db   = Database::getInstance();
-        $year = date('Y');
-        $last = $db->fetchColumn(
-            "SELECT member_id FROM attendees WHERE member_id LIKE ? ORDER BY id DESC LIMIT 1",
-            ["CH-{$year}-%"]
-        );
-        $seq = 1;
-        if ($last) {
-            $seq = (int)substr($last, -6) + 1;
-        }
-        return sprintf('CH-%s-%06d', $year, $seq);
     }
 
     // ── Check-in ────────────────────────────────────────────────────────────

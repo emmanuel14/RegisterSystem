@@ -1,33 +1,12 @@
 Options -Indexes -MultiViews
 DirectoryIndex index.php
 
-# Block access to hidden files
-<Files ".*">
-    Require all denied
-</Files>
-
 RewriteEngine On
 
-# Serve existing files and directories directly
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# ── Serve real files and directories directly (CSS, JS, images, uploads) ──
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
 
-# Route everything else through the front controller
+# ── Everything else goes through the front controller ──
 RewriteRule ^ index.php [QSA,L]
-
-# Security headers
-<IfModule mod_headers.c>
-    Header always set X-Frame-Options "SAMEORIGIN"
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set Referrer-Policy "strict-origin-when-cross-origin"
-</IfModule>
-
-# Cache static assets
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/png  "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType text/css   "access plus 1 week"
-    ExpiresByType text/javascript "access plus 1 week"
-</IfModule>

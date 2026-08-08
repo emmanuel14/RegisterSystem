@@ -4,25 +4,13 @@
 
 // ── Public ────────────────────────────────────────────────────────────────
 $router->get('/',                                       'PublicController', 'home');
-$router->get('/events',                                 'PublicController', 'eventsList');
+$router->get('/events',                                 'PublicController', 'home');
 $router->get('/events/{slug}',                          'PublicController', 'eventDetail');
-$router->get('/events/{slug}/calendar.ics',             'PublicController', 'downloadCalendar');
 $router->get('/events/{slug}/register',                 'PublicController', 'registerForm');
 $router->post('/events/{slug}/register',                'PublicController', 'registerSubmit');
 $router->get('/registration/success/{code}',            'PublicController', 'success');
 $router->get('/registration/download-qr/{code}',        'PublicController', 'downloadQr');
 $router->get('/checkin/{code}',                         'PublicController', 'checkinPublic');
-$router->get('/search',                                 'PublicController', 'search');
-$router->get('/ministries',                             'PublicController', 'ministries');
-$router->get('/ministries/{slug}',                      'PublicController', 'ministryDetail');
-
-// ── Member Portal ─────────────────────────────────────────────────────────
-$router->get('/member/login',                           'MemberController', 'loginPage');
-$router->post('/member/login',                          'MemberController', 'loginSubmit');
-$router->get('/member/logout',                          'MemberController', 'logout');
-$router->get('/member/profile',                         'MemberController', 'profile');
-$router->get('/member/pass/{code}',                     'MemberController', 'pass');
-$router->post('/member/testimonial',                    'MemberController', 'submitTestimonial');
 
 // ── Admin Auth ─────────────────────────────────────────────────────────────
 $router->get('/admin/login',                            'AuthController',         'loginPage');
@@ -57,7 +45,6 @@ $router->get('/admin/registrations/{id:int}/print',     'RegistrationController'
 $router->get('/admin/checkin',                          'RegistrationController', 'checkinPage');
 $router->post('/admin/checkin/lookup',                  'RegistrationController', 'lookupQr');
 $router->post('/admin/checkin/{id:int}',                'RegistrationController', 'checkin');
-$router->get('/admin/checkin/stats/{id:int}',           'RegistrationController', 'checkinStats');
 
 // Reports
 $router->get('/admin/reports',                          'ReportController',       'index');
