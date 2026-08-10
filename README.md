@@ -238,6 +238,4 @@ Use the credentials you set during installation.
 
 ---
 
-## License
 
-MIT License — free for personal and commercial use.
