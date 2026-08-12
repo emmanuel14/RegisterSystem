@@ -29,7 +29,7 @@
                 <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
                 <span style="font-size:13.5px"><?= implode('<br>', array_map($e, (array)$flash['warning'])) ?></span>
             </div>
-        <?php endif; ?>s
+        <?php endif; ?>
 
         <!-- Form -->
         <form method="POST" action="<?= Helpers\Helper::base('admin/login') ?>" novalidate>

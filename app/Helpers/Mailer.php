@@ -24,7 +24,8 @@ class Mailer
         string  $toName,
         string  $subject,
         string  $htmlBody,
-        ?string $textBody = null
+        ?string $textBody = null,
+        ?string $qrImagePath = null
     ): bool {
         $settings = Setting::all();
 
@@ -57,6 +58,10 @@ class Mailer
             $mail->addAddress($to, $toName);
             $mail->addReplyTo($settings['smtp_from_email'] ?? 'noreply@ems.local', $settings['smtp_from_name'] ?? 'EMS');
 
+            if (!empty($qrImagePath) && file_exists($qrImagePath)) {
+                $mail->addAttachment($qrImagePath, basename($qrImagePath));
+            }
+
             $mail->CharSet  = 'UTF-8';
             $mail->Subject  = $subject;
             $mail->isHTML(true);
@@ -88,7 +93,9 @@ class Mailer
             $registration['email'],
             $registration['first_name'] . ' ' . $registration['last_name'],
             $subject,
-            $html
+            $html,
+            null,
+            $qrImagePath
         );
     }
 
