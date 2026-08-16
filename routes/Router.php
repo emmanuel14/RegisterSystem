@@ -49,7 +49,7 @@ class Router
         foreach ($this->routes as [$routeMethod, $pattern, $controllerClass, $action]) {
             if ($method !== $routeMethod) continue;
 
-            $regex = preg_replace('/\{([a-z_]+):int\}/', '([0-9]+)', $pattern);
+            $regex = preg_replace('/\{([a-z_]+):int\}/', '([0-9]+)', $pattern)w;
             $regex = preg_replace('/\{([a-z_]+)\}/', '([^/]+)', $regex);
             $regex = '@^' . $regex . '$@';
 
