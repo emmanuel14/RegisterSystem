@@ -54,7 +54,7 @@ class Router
             $regex = '@^' . $regex . '$@';
 
             if (preg_match($regex, $uri, $matches)) {
-                array_shift($matches); // Remove full match
+                array_shift($matches); // Remove full matchw
 
                 $fqClass = 'Controllers\\' . $controllerClass;
                 if (!class_exists($fqClass)) {
