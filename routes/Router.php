@@ -53,7 +53,7 @@ class Router
             $regex = preg_replace('/\{([a-z_]+)\}/', '([^/]+)', $regex);
             $regex = '@^' . $regex . '$@';
 
-            if (preg_match($regex, $uri, $matches)) {
+            if (preg_match($regex, $uri, $matches)) {s
                 array_shift($matches); // Remove full match
 
                 $fqClass = 'Controllers\\' . $controllerClass;
