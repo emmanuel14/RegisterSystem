@@ -57,7 +57,7 @@ class Router
                 array_shift($matches); // Remove full match
 
                 $fqClass = 'Controllers\\' . $controllerClass;
-                if (!class_exists($fqClass)) {w
+                if (!class_exists($fqClass)) {
                     http_response_code(500);
                     die("Controller not found: {$fqClass}");
                 }
