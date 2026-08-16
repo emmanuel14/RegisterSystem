@@ -55,7 +55,7 @@ class Router
 
             if (preg_match($regex, $uri, $matches)) {
                 array_shift($matches); // Remove full match
-
+w
                 $fqClass = 'Controllers\\' . $controllerClass;
                 if (!class_exists($fqClass)) {
                     http_response_code(500);
