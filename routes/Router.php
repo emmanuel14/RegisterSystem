@@ -50,7 +50,7 @@ class Router
             if ($method !== $routeMethod) continue;
 
             $regex = preg_replace('/\{([a-z_]+):int\}/', '([0-9]+)', $pattern);
-            $regex = preg_replace('/\{([a-z_]+)\}/', '([^/]+)', $regex);
+            $regex = preg_replace('/\{([a-z_]+)\}/', '([^/]+)', $regex);w
             $regex = '@^' . $regex . '$@';
 
             if (preg_match($regex, $uri, $matches)) {
