@@ -51,7 +51,7 @@ class Router
 
             $regex = preg_replace('/\{([a-z_]+):int\}/', '([0-9]+)', $pattern);
             $regex = preg_replace('/\{([a-z_]+)\}/', '([^/]+)', $regex);
-            $regex = '@^' . $regex . '$@';
+            $regex = '@^' . $regex . '$@';z
 
             if (preg_match($regex, $uri, $matches)) {
                 array_shift($matches); // Remove full match
