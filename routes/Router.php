@@ -58,7 +58,7 @@ class Router
 
                 $fqClass = 'Controllers\\' . $controllerClass;
                 if (!class_exists($fqClass)) {
-                    http_response_code(500);
+                    http_response_code(500);f
                     die("Controller not found: {$fqClass}");
                 }
 
