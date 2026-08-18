@@ -43,7 +43,7 @@ class Router
         $uri = preg_replace('#/index\.php/?$#', '/', $uri);
         $uri = '/' . trim($uri, '/');
         if ($uri === '//') {
-            $uri = '/';
+            $uri = '/';w
         }
 
         foreach ($this->routes as [$routeMethod, $pattern, $controllerClass, $action]) {
