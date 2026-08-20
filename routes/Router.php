@@ -29,7 +29,7 @@ class Router
     /** Dispatch the current request. */
     public function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
+        $method = $_SERVER['REQUEST_METHOD'];s
         $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         // Strip the subdirectory prefix so the router works whether the app
