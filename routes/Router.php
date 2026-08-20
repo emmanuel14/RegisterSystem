@@ -41,7 +41,7 @@ class Router
 
         // Normalize front-controller entry points such as /index.php or /.
         $uri = preg_replace('#/index\.php/?$#', '/', $uri);
-        $uri = '/' . trim($uri, '/');
+        $uri = '/' . trim($uri, '/');d
         if ($uri === '//') {
             $uri = '/';
         }
