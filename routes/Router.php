@@ -38,7 +38,7 @@ class Router
         if ($scriptDir !== '' && $scriptDir !== '/' && str_starts_with($uri, $scriptDir)) {
             $uri = substr($uri, strlen($scriptDir));
         }
-e
+
         // Normalize front-controller entry points such as /index.php or /.
         $uri = preg_replace('#/index\.php/?$#', '/', $uri);
         $uri = '/' . trim($uri, '/');
